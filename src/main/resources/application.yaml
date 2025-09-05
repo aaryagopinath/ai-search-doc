@@ -1,0 +1,36 @@
+spring:
+  application:
+    name: doc-search
+
+  datasource:
+    url: jdbc:postgresql://localhost:6543/docsearch
+    username: postgres
+    password: admin123
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+
+  flyway:
+    enabled: false
+    locations: classpath:db/migration
+
+  ai:
+    ollama:
+      init:
+        pull-model-strategy: when_missing
+        chat:
+          include: true
+      embedding:
+        options:
+          model: nomic-embed-text
+    vectorstore:
+      pgvector:
+        initialize-schema: true
+        dimensions: 768
+        index-type: hnsw
+
+server:
+  port: 8080

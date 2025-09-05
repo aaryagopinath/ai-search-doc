@@ -1,0 +1,37 @@
+version: "3.9"
+services:
+  postgres:
+    image: ankane/pgvector:latest
+    container_name: docsearch-postgres
+    environment:
+      POSTGRES_USER: docsearch
+      POSTGRES_PASSWORD: docsearch
+      POSTGRES_DB: docsearch
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U docsearch"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: docsearch-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama:/root/.ollama
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    # You still need to pull the embedding model once:
+    # docker exec -it docsearch-ollama ollama pull nomic-embed-text
+
+volumes:
+  pgdata:
+  ollama:
