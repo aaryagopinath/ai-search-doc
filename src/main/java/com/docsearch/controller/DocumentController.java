@@ -70,4 +70,14 @@ public class DocumentController {
     public ResponseEntity<List<DocumentEntity>> search(@RequestParam("q") String q) {
         return ResponseEntity.ok(service.search(q));
     }
+
+//    @PostMapping("/autocorrect")
+//    public ResponseEntity<byte[]> correctFile(@RequestPart("file") MultipartFile file) throws IOException {
+//        byte[] correctedFile = service.correctFile(file);
+//
+//        return ResponseEntity.ok()
+//                .header("Content-Disposition", "attachment; filename=corrected_" + file.getOriginalFilename())
+//                .header("Content-Type", file.getContentType())
+//                .body(correctedFile);
+//    }
 }

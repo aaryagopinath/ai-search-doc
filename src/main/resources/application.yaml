@@ -23,6 +23,7 @@ spring:
         pull-model-strategy: when_missing
         chat:
           include: true
+          model: mistral
       embedding:
         options:
           model: nomic-embed-text

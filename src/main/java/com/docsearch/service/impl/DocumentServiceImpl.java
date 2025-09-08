@@ -1,4 +1,5 @@
 package com.docsearch.service.impl;
+import org.springframework.ai.chat.client.ChatClient;
 
 import com.docsearch.model.DocumentEntity;
 import com.docsearch.repository.DocumentRepository;
@@ -37,6 +38,7 @@ public class DocumentServiceImpl implements DocumentService {
 
     private final DocumentRepository repo;
     private final VectorStore vectorStore;
+    private final ChatClient ollamaChatClient;
 
     /**
      * Uploads a document and prepares it for semantic search.
@@ -153,5 +155,51 @@ public class DocumentServiceImpl implements DocumentService {
             if (i < 0) i = 0;
         }
         return parts;
+    }
+
+//    @Override
+    public byte[] correctFile(MultipartFile file) throws IOException {
+        String text;
+
+        if ("application/pdf".equalsIgnoreCase(file.getContentType())) {
+            try (PDDocument pdfDoc = Loader.loadPDF(file.getInputStream().readAllBytes())) {
+                text = new PDFTextStripper().getText(pdfDoc);
+            }
+        } else {
+            text = new String(file.getBytes(), StandardCharsets.UTF_8);
+        }
+
+        String corrected = correctText(text);
+
+        if ("application/pdf".equalsIgnoreCase(file.getContentType())) {
+            try (var out = new java.io.ByteArrayOutputStream();
+                 var doc = new PDDocument()) {
+                var page = new org.apache.pdfbox.pdmodel.PDPage();
+                doc.addPage(page);
+
+                var font = new org.apache.pdfbox.pdmodel.font.PDType1Font(org.apache.pdfbox.pdmodel.font.Standard14Fonts.FontName.HELVETICA);
+                try (var cs = new org.apache.pdfbox.pdmodel.PDPageContentStream(doc, page)) {
+                    cs.beginText();
+                    cs.setFont(font, 12);
+                    cs.newLineAtOffset(50, 700);
+                    cs.showText(corrected);
+                    cs.endText();
+                }
+                doc.save(out);
+                return out.toByteArray();
+            }
+        } else {
+            return corrected.getBytes(StandardCharsets.UTF_8);
+        }
+    }
+
+    private String correctText(String input) {
+        String prompt = "Please correct the spelling and grammar in the following text. " +
+                "Preserve meaning and structure:\n\n" + input;
+
+        return ollamaChatClient.prompt()
+                .user(prompt)
+                .call()
+                .content();  // ✅ this gives the corrected text
     }
 }
