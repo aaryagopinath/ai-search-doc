@@ -71,13 +71,23 @@ public class DocumentController {
         return ResponseEntity.ok(service.search(q));
     }
 
-//    @PostMapping("/autocorrect")
-//    public ResponseEntity<byte[]> correctFile(@RequestPart("file") MultipartFile file) throws IOException {
-//        byte[] correctedFile = service.correctFile(file);
-//
-//        return ResponseEntity.ok()
-//                .header("Content-Disposition", "attachment; filename=corrected_" + file.getOriginalFilename())
-//                .header("Content-Type", file.getContentType())
-//                .body(correctedFile);
-//    }
+    /**
+     * Corrects grammar and spelling mistakes in an uploaded file (text or PDF).
+     * <p>
+     * The uploaded file’s text content is extracted, sent to the AI model for correction,
+     * and returned as a {@link DocumentEntity} containing the corrected version.
+     * <p>
+     * Unlike the upload endpoint, this does not index the document in the vector store
+     * unless explicitly persisted later.
+     *
+     * @param file The uploaded file (text or PDF) to correct.
+     * @return A {@link DocumentEntity} containing the corrected content.
+     * @throws IOException if there is an error while reading the file.
+     */
+    @PostMapping("/autocorrect")
+    public ResponseEntity<DocumentEntity> correctFile(@RequestPart("file") MultipartFile file) throws IOException {
+        return ResponseEntity.ok(service.correctFile(file));
+
+
+    }
 }

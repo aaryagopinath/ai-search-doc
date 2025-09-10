@@ -7,6 +7,8 @@ import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
@@ -31,6 +33,7 @@ class DocumentServiceImplTest {
 
     private DocumentRepository repo;
     private VectorStore vectorStore;
+    private  ChatClient ollamaChatClient;
     private DocumentServiceImpl service;
 
     /**
@@ -41,7 +44,8 @@ class DocumentServiceImplTest {
     void setUp() {
         repo = mock(DocumentRepository.class);
         vectorStore = mock(VectorStore.class);
-        service = new DocumentServiceImpl(repo, vectorStore);
+        ollamaChatClient = mock(ChatClient.class);
+        service = new DocumentServiceImpl(repo, vectorStore,ollamaChatClient);
     }
 
     /**
@@ -182,4 +186,76 @@ class DocumentServiceImplTest {
             return out.toByteArray();
         }
     }
+    /**
+     * Tests correcting a plain text file.
+     * <p>
+     * Verifies that text is extracted from the file, sent to the Ollama chat client,
+     * and the returned corrected text is wrapped in a {@link DocumentEntity}.
+     */
+    @Test
+    void correctFile_TextFile_ReturnsCorrectedEntity() throws Exception {
+        String input = "Thiss is bad speling.";
+        String corrected = "This is bad spelling.";
+
+        MockMultipartFile file = new MockMultipartFile(
+                "file", "errors.txt", "text/plain", input.getBytes(StandardCharsets.UTF_8)
+        );
+
+        // Mock ollamaChatClient behavior
+        ChatClient.ChatClientRequest request = mock(ChatClient.ChatClientRequest.class);
+        ChatResponse response = mock(ChatResponse.class);
+
+        when(ollamaChatClient.prompt()).thenReturn(request);
+        when(request.user(anyString())).thenReturn(request);
+        when(request.call()).thenReturn(response);
+        when(response.content()).thenReturn(corrected);
+
+        DocumentEntity result = service.correctFile(file);
+
+        assertThat(result.getFilename()).isEqualTo("errors.txt");
+        assertThat(result.getContentType()).isEqualTo("text/plain");
+        assertThat(result.getContentText()).isEqualTo(corrected);
+        assertThat(result.getDescription()).isEqualTo("Grammar/Spelling corrected version");
+        assertThat(result.getUploadedAt()).isNotNull();
+
+        verify(ollamaChatClient).prompt();
+        verify(request).user(anyString());
+        verify(request).call();
+    }
+
+    /**
+     * Tests correcting a PDF file.
+     * <p>
+     * Verifies that PDF text is extracted and corrected properly
+     * through the Ollama chat client.
+     */
+    @Test
+    void correctFile_PdfFile_ReturnsCorrectedEntity() throws Exception {
+        String pdfText = "Thiss is pdf with erors.";
+        String corrected = "This is PDF with errors.";
+
+        byte[] pdfBytes = createSimplePdfBytes(pdfText);
+
+        MockMultipartFile file = new MockMultipartFile(
+                "file", "sample.pdf", "application/pdf", pdfBytes
+        );
+
+        // Mock ollamaChatClient behavior
+        ChatClient.ChatClientRequest request = mock(ChatClient.ChatClientRequest.class);
+        ChatClient.ChatClientResponse response = mock(ChatClient.ChatClientResponse.class);
+
+        when(ollamaChatClient.prompt()).thenReturn(request);
+        when(request.user(anyString())).thenReturn(request);
+        when(request.call()).thenReturn(response);
+        when(response.content()).thenReturn(corrected);
+
+        DocumentEntity result = service.correctFile(file);
+
+        assertThat(result.getFilename()).isEqualTo("sample.pdf");
+        assertThat(result.getContentType()).isEqualTo("application/pdf");
+        assertThat(result.getContentText()).isEqualTo(corrected);
+        assertThat(result.getDescription()).isEqualTo("Grammar/Spelling corrected version");
+        assertThat(result.getUploadedAt()).isNotNull();
+    }
+
 }

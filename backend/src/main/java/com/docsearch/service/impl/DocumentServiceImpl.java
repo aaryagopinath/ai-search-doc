@@ -157,8 +157,27 @@ public class DocumentServiceImpl implements DocumentService {
         return parts;
     }
 
-//    @Override
-    public byte[] correctFile(MultipartFile file) throws IOException {
+    /**
+     * Processes an uploaded file (PDF or text), corrects its grammar and spelling
+     * using the AI model, and returns a new {@link DocumentEntity} containing the
+     * corrected content.
+     * <p>
+     * Steps:
+     * <ol>
+     *   <li>Extract text from the uploaded file (PDF → via PDFBox, plain text → directly).</li>
+     *   <li>Send the extracted text to the {@link #correctText(String)} method for correction.</li>
+     *   <li>Wrap the corrected content into a {@link DocumentEntity} with metadata.</li>
+     * </ol>
+     * <p>
+     * Note: This method does not persist the corrected document into the database.
+     * If persistence is needed, explicitly call the repository.
+     *
+     * @param file The uploaded file (PDF or text) whose content needs correction.
+     * @return A new {@link DocumentEntity} containing the corrected text and metadata.
+     * @throws IOException If there is an error reading the file.
+     */
+    @Override
+    public DocumentEntity correctFile(MultipartFile file) throws IOException {
         String text;
 
         if ("application/pdf".equalsIgnoreCase(file.getContentType())) {
@@ -171,28 +190,28 @@ public class DocumentServiceImpl implements DocumentService {
 
         String corrected = correctText(text);
 
-        if ("application/pdf".equalsIgnoreCase(file.getContentType())) {
-            try (var out = new java.io.ByteArrayOutputStream();
-                 var doc = new PDDocument()) {
-                var page = new org.apache.pdfbox.pdmodel.PDPage();
-                doc.addPage(page);
+        DocumentEntity correctedDoc = DocumentEntity.builder()
+                .filename(file.getOriginalFilename())
+                .contentType(file.getContentType())
+                .contentText(corrected)
+                .description("Grammar/Spelling corrected version")
+                .uploadedAt(Instant.now())
+                .build();
 
-                var font = new org.apache.pdfbox.pdmodel.font.PDType1Font(org.apache.pdfbox.pdmodel.font.Standard14Fonts.FontName.HELVETICA);
-                try (var cs = new org.apache.pdfbox.pdmodel.PDPageContentStream(doc, page)) {
-                    cs.beginText();
-                    cs.setFont(font, 12);
-                    cs.newLineAtOffset(50, 700);
-                    cs.showText(corrected);
-                    cs.endText();
-                }
-                doc.save(out);
-                return out.toByteArray();
-            }
-        } else {
-            return corrected.getBytes(StandardCharsets.UTF_8);
-        }
+
+
+        return correctedDoc;
     }
 
+    /**
+     * Sends the given text to the Ollama chat client for grammar and spelling correction.
+     * <p>
+     * Constructs a prompt instructing the AI model to correct errors while preserving
+     * the meaning and structure of the original input.
+     *
+     * @param input The raw input text to be corrected.
+     * @return The corrected version of the text as returned by the AI model.
+     */
     private String correctText(String input) {
         String prompt = "Please correct the spelling and grammar in the following text. " +
                 "Preserve meaning and structure:\n\n" + input;
@@ -200,6 +219,6 @@ public class DocumentServiceImpl implements DocumentService {
         return ollamaChatClient.prompt()
                 .user(prompt)
                 .call()
-                .content();  // ✅ this gives the corrected text
+                .content();
     }
 }

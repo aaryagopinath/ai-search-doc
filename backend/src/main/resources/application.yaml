@@ -19,19 +19,19 @@ spring:
 
   ai:
     ollama:
-      init:
-        pull-model-strategy: when_missing
-        chat:
-          include: true
+      base-url: http://localhost:11434
+      chat:
+        include: true
+        options:
           model: mistral
       embedding:
         options:
           model: nomic-embed-text
-    vectorstore:
-      pgvector:
-        initialize-schema: true
-        dimensions: 768
-        index-type: hnsw
+      vectorstore:
+        pgvector:
+          initialize-schema: true
+          dimensions: 768
+          index-type: hnsw
 
 server:
   port: 8080

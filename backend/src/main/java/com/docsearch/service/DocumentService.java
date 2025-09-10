@@ -38,4 +38,18 @@ public interface DocumentService {
      */
     List<DocumentEntity> search(String q);
 
+    /**
+     * Corrects grammar and spelling mistakes in the content of an uploaded file (PDF or text).
+     * <p>
+     * The file's text is extracted and passed through an AI model for correction.
+     * The result is wrapped in a {@link DocumentEntity} containing metadata and
+     * the corrected content.
+     * <p>
+     * Note: Implementations may or may not persist the corrected document in the database.
+     *
+     * @param file The uploaded file (PDF or text) to correct.
+     * @return A {@link DocumentEntity} containing the corrected text and metadata.
+     * @throws IOException If there is an error reading the file.
+     */
+    DocumentEntity correctFile(MultipartFile file) throws IOException;
 }

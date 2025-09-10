@@ -109,4 +109,40 @@ class DocumentControllerTest {
                 .andExpect(jsonPath("$[0].id").value(1))
                 .andExpect(jsonPath("$[1].id").value(2));
     }
+
+    /**
+     * Tests the /autocorrect endpoint.
+     * <p>
+     * Mocks a file upload request and verifies that the corrected
+     * {@link DocumentEntity} returned from the service is serialized
+     * correctly in the response.
+     */
+    @Test
+    void correctFile_ReturnsCorrectedEntity() throws Exception {MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "test_with_errors.txt",
+                MediaType.TEXT_PLAIN_VALUE,
+                "Thiss is a bad speling.".getBytes()
+        );
+
+        DocumentEntity corrected = DocumentEntity.builder()
+                .id(1L)
+                .filename("test_with_errors.txt")
+                .contentType("text/plain")
+                .contentText("This is a bad spelling.")
+                .description("Grammar/Spelling corrected version")
+                .uploadedAt(Instant.now())
+                .build();
+
+        Mockito.when(service.correctFile(any())).thenReturn(corrected);
+
+        mockMvc.perform(multipart("/autocorrect").file(file))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(corrected.getId()))
+                .andExpect(jsonPath("$.filename").value("test_with_errors.txt"))
+                .andExpect(jsonPath("$.contentText").value("This is a bad spelling."))
+                .andExpect(jsonPath("$.description").value("Grammar/Spelling corrected version"));
+    }
+
+
 }
