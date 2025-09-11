@@ -77,7 +77,6 @@ public class DocumentServiceImpl implements DocumentService {
 
         DocumentEntity saved = repo.save(entity);
 
-        // Split into chunks and index in vector store
         List<String> chunks = chunkText(text, 800, 120);
         int idx = 0;
 
@@ -125,7 +124,6 @@ public class DocumentServiceImpl implements DocumentService {
                 return repo.findAllById(ids);
             }
         } catch (Exception ignored) {
-            // fallback will handle
         }
 
         return repo.searchLike(q);
@@ -190,17 +188,14 @@ public class DocumentServiceImpl implements DocumentService {
 
         String corrected = correctText(text);
 
-        DocumentEntity correctedDoc = DocumentEntity.builder()
+
+        return DocumentEntity.builder()
                 .filename(file.getOriginalFilename())
                 .contentType(file.getContentType())
                 .contentText(corrected)
                 .description("Grammar/Spelling corrected version")
                 .uploadedAt(Instant.now())
                 .build();
-
-
-
-        return correctedDoc;
     }
 
     /**
