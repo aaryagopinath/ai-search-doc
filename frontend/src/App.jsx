@@ -1,5 +1,8 @@
-import AppRouter from "./router";
 import { ThemeProvider, createTheme, CssBaseline } from "@mui/material";
+import Navbar from "./components/Navbar";
+import HomePanel from "./components/HomePanel"; // ✅ directly use HomePanel instead of Router
+
+import { useState } from "react";
 
 const theme = createTheme({
   palette: {
@@ -10,10 +13,13 @@ const theme = createTheme({
 });
 
 export default function App() {
+  const [searchResults, setSearchResults] = useState([]);
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <AppRouter />
+      <Navbar onSearchResults={setSearchResults} />
+      <HomePanel searchResults={searchResults} />
     </ThemeProvider>
   );
 }

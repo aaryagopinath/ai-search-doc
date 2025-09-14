@@ -1,7 +1,23 @@
-import { AppBar, Toolbar, Typography, Button } from "@mui/material";
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { AppBar, Toolbar, Typography, InputBase, Box } from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
+import { searchDocuments } from "../services/api"; // ✅ Import API
 
-export default function Navbar() {
+export default function Navbar({ onSearchResults }) {
+  const [query, setQuery] = useState("");
+
+  const handleSearch = async (e) => {
+    if (e.key === "Enter") {
+      try {
+        const results = await searchDocuments(query);
+        console.log("Search results:", results);
+        if (onSearchResults) onSearchResults(results);
+      } catch (err) {
+        console.error("Search failed:", err);
+      }
+    }
+  };
+
   return (
     <AppBar position="static">
       <Toolbar>
@@ -12,18 +28,24 @@ export default function Navbar() {
         >
           AI Doc Search
         </Typography>
-        <Button color="inherit" component={Link} to="/">
-          Home
-        </Button>
-        <Button color="inherit" component={Link} to="/upload">
-          Upload
-        </Button>
-        <Button color="inherit" component={Link} to="/search">
-          Search
-        </Button>
-        <Button color="inherit" component={Link} to="/grammar-fix">
-          Grammar Fix
-        </Button>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            backgroundColor: "rgba(255, 255, 255, 0.15)",
+            padding: "0 8px",
+            borderRadius: 2,
+          }}
+        >
+          <SearchIcon />
+          <InputBase
+            placeholder="Search..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={handleSearch}
+            sx={{ ml: 1, color: "inherit", width: 200 }}
+          />
+        </Box>
       </Toolbar>
     </AppBar>
   );
