@@ -16,7 +16,7 @@ import { uploadDocument, fixGrammar } from "../services/api";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
-export default function HomePanel({ searchResults = [] }) {
+export default function HomePanel({ searchResults = [], searchLoading  }) {
   const [showEditor, setShowEditor] = useState(false);
   const [text, setText] = useState("");
   const [fileName, setFileName] = useState("");
@@ -99,6 +99,12 @@ export default function HomePanel({ searchResults = [] }) {
 
   return (
     <Paper sx={{ p: 4, borderRadius: 3, boxShadow: 3, textAlign: "center" }}>
+         {searchLoading  ? (
+                <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+                  <CircularProgress size={40} />
+                </Box>
+              ) : (
+                  <>
       {/* 🔍 Show search results if present */}
       {searchResults.length > 0 && (
         <Box mb={3} textAlign="left">
@@ -203,6 +209,8 @@ export default function HomePanel({ searchResults = [] }) {
           </Box>
         </Box>
       )}
+     </>
+        )}
     </Paper>
   );
 }

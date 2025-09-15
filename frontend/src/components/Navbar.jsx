@@ -1,19 +1,22 @@
 import { useState } from "react";
-import { AppBar, Toolbar, Typography, InputBase, Box } from "@mui/material";
+import { AppBar, Toolbar, Typography, InputBase, Box, CircularProgress } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
-import { searchDocuments } from "../services/api"; // ✅ Import API
+import { searchDocuments } from "../services/api";
 
-export default function Navbar({ onSearchResults }) {
+export default function Navbar({ onSearchResults, setLoading }) {
   const [query, setQuery] = useState("");
 
   const handleSearch = async (e) => {
     if (e.key === "Enter") {
       try {
+        setLoading(true); // ✅ Show loader in HomePanel
         const results = await searchDocuments(query);
         console.log("Search results:", results);
         if (onSearchResults) onSearchResults(results);
       } catch (err) {
         console.error("Search failed:", err);
+      } finally {
+        setLoading(false); // ✅ Hide loader
       }
     }
   };

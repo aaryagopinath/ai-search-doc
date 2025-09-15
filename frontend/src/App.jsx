@@ -1,7 +1,6 @@
 import { ThemeProvider, createTheme, CssBaseline } from "@mui/material";
 import Navbar from "./components/Navbar";
-import HomePanel from "./components/HomePanel"; // ✅ directly use HomePanel instead of Router
-
+import HomePanel from "./components/HomePanel";
 import { useState } from "react";
 
 const theme = createTheme({
@@ -14,12 +13,13 @@ const theme = createTheme({
 
 export default function App() {
   const [searchResults, setSearchResults] = useState([]);
+  const [loading, setLoading] = useState(false); // ✅ global loading
 
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Navbar onSearchResults={setSearchResults} />
-      <HomePanel searchResults={searchResults} />
+      <Navbar onSearchResults={setSearchResults} setLoading={setLoading} />
+      <HomePanel searchResults={searchResults} loading={loading} />
     </ThemeProvider>
   );
 }
