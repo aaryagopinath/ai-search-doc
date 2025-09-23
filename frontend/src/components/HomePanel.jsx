@@ -16,7 +16,7 @@ import { uploadDocument, fixGrammar } from "../services/api";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
-export default function HomePanel({ searchResults = [], searchLoading  }) {
+export default function HomePanel({ searchResults = [], searchLoading, searchDone  }) {
   const [showEditor, setShowEditor] = useState(false);
   const [text, setText] = useState("");
   const [fileName, setFileName] = useState("");
@@ -25,40 +25,52 @@ export default function HomePanel({ searchResults = [], searchLoading  }) {
 
   const handlePasteClick = () => setShowEditor(true);
 
-  const handleFileUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+ const handleFileUpload = async (e) => {
+   const file = e.target.files[0];
+   if (!file) return;
 
-    setFileObject(file);
-    setFileName(file.name);
-    setShowEditor(true);
+   setFileObject(file);
+   setFileName(file.name);
+   setShowEditor(true);
 
-    if (file.type === "application/pdf") {
-      try {
-        const arrayBuffer = await file.arrayBuffer();
-        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+   try {
+     // ✅ 1. Upload to backend immediately
+     setLoading(true);
+     const result = await uploadDocument(file, "Uploaded from UI");
+     console.log("✅ Uploaded document:", result);
 
-        let fullText = "";
-        for (let i = 1; i <= pdf.numPages; i++) {
-          const page = await pdf.getPage(i);
-          const textContent = await page.getTextContent();
-          const pageText = textContent.items.map((item) => item.str).join(" ");
-          fullText += pageText + "\n\n";
-        }
+     // ✅ 2. Show content returned from backend (if any)
+     if (result.contentText) {
+       setText(result.contentText);
+     }
 
-        setText(fullText || "⚠️ No text could be extracted from this PDF.");
-      } catch (err) {
-        console.error("Error reading PDF:", err);
-        setText("⚠️ Failed to read this PDF file.");
-      }
-    } else {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setText(event.target.result);
-      };
-      reader.readAsText(file);
-    }
-  };
+     // ✅ 3. If backend doesn't return text, still try to extract locally (fallback)
+     else if (file.type === "application/pdf") {
+       const arrayBuffer = await file.arrayBuffer();
+       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+
+       let fullText = "";
+       for (let i = 1; i <= pdf.numPages; i++) {
+         const page = await pdf.getPage(i);
+         const textContent = await page.getTextContent();
+         const pageText = textContent.items.map((item) => item.str).join(" ");
+         fullText += pageText + "\n\n";
+       }
+
+       setText(fullText || "⚠️ No text could be extracted from this PDF.");
+     } else {
+       const reader = new FileReader();
+       reader.onload = (event) => setText(event.target.result);
+       reader.readAsText(file);
+     }
+   } catch (err) {
+     console.error("Upload failed:", err);
+     alert("❌ Failed to upload document to backend.");
+   } finally {
+     setLoading(false);
+   }
+ };
+
 
   const handleUploadToBackend = async () => {
     if (!fileObject) return alert("No file selected!");
@@ -103,6 +115,10 @@ export default function HomePanel({ searchResults = [], searchLoading  }) {
                 <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
                   <CircularProgress size={40} />
                 </Box>
+                ) : searchDone && searchResults.length === 0 ? ( // ✅ if search done & no results
+                  <Typography variant="body1" color="text.secondary" sx={{ mt: 2 }}>
+                    No results found.
+                  </Typography>
               ) : (
                   <>
       {/* 🔍 Show search results if present */}
@@ -175,10 +191,36 @@ export default function HomePanel({ searchResults = [], searchLoading  }) {
         </>
       ) : (
         <Box display="flex" flexDirection="column" gap={2}>
-          {fileName && (
+                          {fileObject && (
+  <Box display="flex" alignItems="center" gap={2}>
+
+{/* //           {fileName && ( */}
             <Typography variant="body2" color="text.secondary">
               Uploaded: {fileName}
             </Typography>
+             <Button
+                                variant="outlined"
+                                component="label"
+                                size="small"
+                                startIcon={<CloudUploadIcon />}
+                              >
+                                Change File
+                                <input type="file" hidden onChange={handleFileUpload} />
+                              </Button>
+                                <Button
+                                                  variant="text"
+                                                  color="error"
+                                                  size="small"
+                                                  onClick={() => {
+                                                    setFileObject(null);
+                                                    setFileName("");
+                                                    setText("");
+                                                    setShowEditor(false);
+                                                  }}
+                                                >
+                                                  Clear
+                                                </Button>
+                                                </Box>
           )}
 
           <TextField
@@ -190,13 +232,13 @@ export default function HomePanel({ searchResults = [], searchLoading  }) {
           />
 
           <Box display="flex" gap={2} justifyContent="center">
-            <Button
-              variant="outlined"
-              onClick={handleUploadToBackend}
-              disabled={!fileObject || loading}
-            >
-              {loading ? <CircularProgress size={20} /> : "Upload to Backend"}
-            </Button>
+{/*             <Button */}
+{/*               variant="outlined" */}
+{/*               onClick={handleUploadToBackend} */}
+{/*               disabled={!fileObject || loading} */}
+{/*             > */}
+{/*               {loading ? <CircularProgress size={20} /> : "Upload to Backend"} */}
+{/*             </Button> */}
 
             <Button
               variant="contained"

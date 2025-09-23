@@ -13,13 +13,26 @@ const theme = createTheme({
 
 export default function App() {
   const [searchResults, setSearchResults] = useState([]);
-  const [loading, setLoading] = useState(false); // ✅ global loading
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchDone, setSearchDone] = useState(false); // ✅ track if search was performed
+
 
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Navbar onSearchResults={setSearchResults} setLoading={setLoading} />
-      <HomePanel searchResults={searchResults} loading={loading} />
-    </ThemeProvider>
+     <Navbar
+       onSearchResults={(results) => {
+         setSearchResults(results);
+         setSearchDone(true);
+       }}
+       setLoading={setSearchLoading}
+       setSearchDone={setSearchDone} // ✅ pass this down
+     />
+
+<HomePanel
+        searchResults={searchResults}
+        searchLoading={searchLoading}
+        searchDone={searchDone} // ✅ pass it down
+      />    </ThemeProvider>
   );
 }

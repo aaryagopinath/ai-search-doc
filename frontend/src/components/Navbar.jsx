@@ -3,16 +3,20 @@ import { AppBar, Toolbar, Typography, InputBase, Box, CircularProgress } from "@
 import SearchIcon from "@mui/icons-material/Search";
 import { searchDocuments } from "../services/api";
 
-export default function Navbar({ onSearchResults, setLoading }) {
+export default function Navbar({ onSearchResults, setLoading, setSearchDone }) {
   const [query, setQuery] = useState("");
 
   const handleSearch = async (e) => {
     if (e.key === "Enter") {
       try {
         setLoading(true); // ✅ Show loader in HomePanel
+        setSearchDone(false); // ✅ reset search before starting
+
+          if (onSearchResults) onSearchResults([]); // ✅ clear old results immediately
         const results = await searchDocuments(query);
         console.log("Search results:", results);
         if (onSearchResults) onSearchResults(results);
+          setSearchDone(true);
       } catch (err) {
         console.error("Search failed:", err);
       } finally {
