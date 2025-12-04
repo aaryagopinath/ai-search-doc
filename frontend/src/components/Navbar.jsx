@@ -26,7 +26,12 @@ export default function Navbar({ onSearchResults, setLoading, setSearchDone }) {
   };
 
   return (
-    <AppBar position="static">
+<AppBar
+  position="static"
+  sx={{
+    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+  }}
+>
       <Toolbar>
         <Typography
           variant="h6"
