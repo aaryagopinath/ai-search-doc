@@ -87,7 +87,33 @@ public class DocumentController {
     @PostMapping("/autocorrect")
     public ResponseEntity<DocumentEntity> correctFile(@RequestPart("file") MultipartFile file) throws IOException {
         return ResponseEntity.ok(service.correctFile(file));
-
-
     }
+
+    /**
+     * Fetch all documents stored in the system.
+     *
+     * @return A list of all {@link DocumentEntity} objects.
+     */
+    @GetMapping("/documents")
+    public ResponseEntity<List<DocumentEntity>> getAllDocuments() {
+        List<DocumentEntity> allDocs = service.getAllDocuments();
+        return ResponseEntity.ok(allDocs);
+    }
+
+    /**
+     * Delete a document by its ID.
+     *
+     * @param id The ID of the document to delete.
+     * @return HTTP 204 No Content if deleted successfully, or 404 if not found.
+     */
+    @DeleteMapping("/documents/{id}")
+    public ResponseEntity<Void> deleteDocument(@PathVariable Long id) {
+        boolean deleted = service.deleteDocument(id);
+        if (deleted) {
+            return ResponseEntity.noContent().build();
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
 }

@@ -52,4 +52,12 @@ public interface DocumentService {
      * @throws IOException If there is an error reading the file.
      */
     DocumentEntity correctFile(MultipartFile file) throws IOException;
-}
+
+     boolean deleteDocument(Long id);
+
+    List<DocumentEntity> getAllDocuments();
+
+
+
+
+    }

@@ -216,4 +216,17 @@ public class DocumentServiceImpl implements DocumentService {
                 .call()
                 .content();
     }
+
+    public List<DocumentEntity> getAllDocuments() {
+        return repo.findAll();
+    }
+
+    public boolean deleteDocument(Long id) {
+        if (repo.existsById(id)) {
+            repo.deleteById(id);
+            return true;
+        }
+        return false;
+    }
+
 }
