@@ -35,3 +35,14 @@ export const fixGrammar = async (file) => {
   });
   return response.data;
 };
+// Fetch all documents
+export const getAllDocuments = async () => {
+  const response = await api.get("/documents");
+  return response.data;
+};
+
+// Delete a document
+export const deleteDocument = async (id) => {
+  const response = await api.delete(`/documents/${id}`);
+  return response.data;
+};
