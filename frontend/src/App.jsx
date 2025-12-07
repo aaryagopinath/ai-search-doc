@@ -1,65 +1,4 @@
-//
-// import { ThemeProvider, createTheme, CssBaseline, Tabs, Tab, Box } from "@mui/material";
-// import Navbar from "./components/Navbar";
-// import HomePanel from "./components/HomePanel";
-// import DocumentsPanel from "./components/DocumentsPanel";   // <-- NEW
-// import { useState } from "react";
-//
-// const theme = createTheme({
-//   palette: {
-//     mode: "light",
-//     primary: { main: "#1976d2" },
-//     secondary: { main: "#9c27b0" },
-//   },
-// });
-//
-// export default function App() {
-//   const [selectedTab, setSelectedTab] = useState(0);   // 0 = Home, 1 = Documents
-//
-//   const [searchResults, setSearchResults] = useState([]);
-//   const [searchLoading, setSearchLoading] = useState(false);
-//   const [searchDone, setSearchDone] = useState(false);
-//
-//   return (
-//     <ThemeProvider theme={theme}>
-//       <CssBaseline />
-//
-//       <Navbar
-//         onSearchResults={(results) => {
-//           setSearchResults(results);
-//           setSearchDone(true);
-//         }}
-//         setLoading={setSearchLoading}
-//         setSearchDone={setSearchDone}
-//       />
-//
-//       {/* Tabs */}
-//       <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-//         <Tabs
-//           value={selectedTab}
-//           onChange={(e, newValue) => setSelectedTab(newValue)}
-//           centered
-//         >
-//           <Tab label="Home" />
-//           <Tab label="Documents" />
-//         </Tabs>
-//       </Box>
-//
-//       {/* Panel Switching */}
-//       <Box sx={{ p: 3 }}>
-//         {selectedTab === 0 && (
-//           <HomePanel
-//             searchResults={searchResults}
-//             searchLoading={searchLoading}
-//             searchDone={searchDone}
-//           />
-//         )}
-//
-//         {selectedTab === 1 && <DocumentsPanel />}   {/* <-- NEW PANEL */}
-//       </Box>
-//     </ThemeProvider>
-//   );
-// }
+
 import { useState } from "react";
 import { Box } from "@mui/material";
 import Navbar from "./components/Navbar";
@@ -68,6 +7,8 @@ import DocumentsPanel from "./components/DocumentsPanel";
 
 function App() {
   const [currentTab, setCurrentTab] = useState(0);
+  const [editorDoc, setEditorDoc] = useState(null);
+
   const [searchResults, setSearchResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchDone, setSearchDone] = useState(false);
@@ -134,6 +75,7 @@ function App() {
       <Box sx={{ p: 3 }}>
         {currentTab === 0 && (
           <HomePanel
+            openDoc = {editorDoc}
             searchResults={searchResults}
             searchLoading={searchLoading}
             searchDone={searchDone}
@@ -142,6 +84,10 @@ function App() {
 
         {currentTab === 1 && (
           <DocumentsPanel
+            onFix={(doc) => {
+                    setEditorDoc(doc);      // send doc to HomePanel
+                     setCurrentTab(0);       // switch to HomePanel tab
+                             }}
             documents={documents}
             onViewDocument={handleViewDocument}
             onDeleteDocument={handleDeleteDocument}

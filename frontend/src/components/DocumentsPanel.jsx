@@ -2,11 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { searchDocuments, getAllDocuments, deleteDocument } from "../services/api";
 
-// This single-file component injects its CSS into the document head so you only
-// need to drop this file into your project (e.g. src/components/DocumentsPanel.jsx)
-// It expects your backend endpoints:
-// GET  /documents           -> returns an array of documents (JSON)
-// DELETE /documents/{id}    -> deletes document with given id
+
 
 const CSS = `
 /* DocumentsPanel scoped styles (injected) */
@@ -88,7 +84,7 @@ function injectCSS() {
   document.head.appendChild(s);
 }
 
-export default function DocumentsPanel() {
+export default function DocumentsPanel({ onFix }) {
   injectCSS();
 
   const [docs, setDocs] = useState([]);
@@ -97,6 +93,7 @@ export default function DocumentsPanel() {
   const [sort, setSort] = useState("recent");
   const [searchTerm, setSearchTerm] = useState("");
   const [deleteTarget, setDeleteTarget] = useState(null); // { id, filename } or null
+
   const [refreshToggle, setRefreshToggle] = useState(false);
   const [searchResults, setSearchResults] = useState(null);
 
@@ -118,6 +115,13 @@ async function fetchDocs() {
   }
 }
 
+function goFix(doc) {
+  if (typeof onFix === "function") {
+    onFix(doc);   // sends doc to HomePanel
+  }
+}
+
+
 async function handleDelete(id) {
   try {
     await deleteDocument(id);
@@ -126,6 +130,11 @@ async function handleDelete(id) {
   } catch (err) {
     alert("Failed to delete: " + err.message);
   }
+}
+
+function viewPdf(id) {
+  const url = `http://localhost:8080/documents/${id}/file`;
+  window.open(url, "_blank");
 }
 
   function fileIcon(filename) {
@@ -178,30 +187,13 @@ async function handleSearchKey(e) {
   }
 }
 
-// If user clears search — restore full list
 useEffect(() => {
   if (searchTerm.trim() === "") {
     setSearchResults(null);
   }
 }, [searchTerm]);
 
-//   const filtered = docs.filter((d) => {
-//     if (!searchTerm) return true;
-//     const q = searchTerm.toLowerCase();
-//     return (
-//       (d.filename || "").toLowerCase().includes(q) ||
-//       (d.contentText || "").toLowerCase().includes(q) ||
-//       (d.description || "").toLowerCase().includes(q)
-//     );
-//   });
 
-//   const sorted = [...filtered].sort((a, b) => {
-//     if (sort === "recent") return new Date(b.uploadedAt) - new Date(a.uploadedAt);
-//     if (sort === "oldest") return new Date(a.uploadedAt) - new Date(b.uploadedAt);
-//     if (sort === "az") return (a.filename || "").localeCompare(b.filename || "");
-//     if (sort === "za") return (b.filename || "").localeCompare(a.filename || "");
-//     return 0;
-//   });
 const baseList = searchResults !== null ? searchResults : docs;
 
 const sorted = [...baseList].sort((a, b) => {
@@ -290,12 +282,13 @@ const sorted = [...baseList].sort((a, b) => {
                 <div className="docs-preview">{d.contentText}</div>
 
                 <div className="docs-actions-row">
-                  <button
-                    className="docs-btn view"
-                    onClick={() => openDocument(d)}
-                  >
-                    View
-                  </button>
+                  <button className="docs-btn view" onClick={() => viewPdf(d.id)}>
+                                         View
+                                         </button>
+<button className="docs-btn view" onClick={() => goFix(d)}>
+  Fix
+</button>
+
                   <button
                     className="docs-btn delete"
                     onClick={() => setDeleteTarget({ id: d.id, filename: d.filename })}
@@ -321,9 +314,13 @@ const sorted = [...baseList].sort((a, b) => {
                 </div>
 
                 <div className="docs-list-actions">
-                  <button className="docs-btn view" onClick={() => openDocument(d)}>
-                    View
-                  </button>
+                <button className="docs-btn view" onClick={() => viewPdf(d.id)}>
+                        View
+                        </button>
+                        <button className="docs-btn view" onClick={() => goFix(d)}>
+                          Fix
+                        </button>
+
                   <button className="docs-btn delete" onClick={() => setDeleteTarget({ id: d.id, filename: d.filename })}>
                     Delete
                   </button>
@@ -370,8 +367,6 @@ function approxSize(text) {
 
 
 function openDocument(doc) {
-  // Default behaviour: open a simple viewer in a new window/tab showing text content
-  // In your app you may want to open an editor route or a modal instead
   const w = window.open("", "_blank");
   if (!w) return alert("Pop-up blocked. Allow popups to view documents.");
   const html = `

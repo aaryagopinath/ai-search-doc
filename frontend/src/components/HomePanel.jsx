@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Box,
   Button,
@@ -26,13 +26,21 @@ import { uploadDocument, fixGrammar } from "../services/api";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
-export default function HomePanel({ searchResults = [], searchLoading, searchDone }) {
+export default function HomePanel({ searchResults = [], searchLoading, searchDone, openDoc }) {
   const [showEditor, setShowEditor] = useState(false);
   const [text, setText] = useState("");
   const [fileName, setFileName] = useState("");
   const [fileObject, setFileObject] = useState(null);
   const [loading, setLoading] = useState(false);
 
+
+useEffect(() => {
+  if (openDoc) {
+    setShowEditor(true);
+    setText(openDoc.contentText);
+    setFileName(openDoc.filename);
+  }
+}, [openDoc]);
   const handlePasteClick = () => setShowEditor(true);
 
   const handleFileUpload = async (e) => {
@@ -246,8 +254,9 @@ export default function HomePanel({ searchResults = [], searchLoading, searchDon
                 color="text.secondary"
                 sx={{ mb: 4, maxWidth: 500, mx: "auto" }}
               >
-                Paste text directly or upload a document to get started with AI-powered
-                grammar checking
+                Paste text directly or upload a document to
+                manage and enhance your documents with AI
+
               </Typography>
 
               <Box display="flex" justifyContent="center" gap={2} flexWrap="wrap">
@@ -307,7 +316,7 @@ export default function HomePanel({ searchResults = [], searchLoading, searchDon
               </Box>
 
               <Typography variant="caption" color="text.secondary" sx={{ mt: 3, display: "block" }}>
-                Supported formats: TXT, PDF, MD, CSV
+                Supported formats: TXT, PDF
               </Typography>
             </Box>
           ) : (
