@@ -1,7 +1,10 @@
 spring:
   application:
     name: doc-search
-
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
   datasource:
     url: jdbc:postgresql://localhost:6543/docsearch
     username: postgres

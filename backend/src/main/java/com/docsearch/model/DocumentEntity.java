@@ -52,4 +52,8 @@ public class DocumentEntity {
      * Timestamp indicating when the document was uploaded.
      */
     private Instant uploadedAt;
+
+    @Lob
+    private byte[] fileData;
+
 }

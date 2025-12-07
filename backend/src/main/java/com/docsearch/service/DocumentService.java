@@ -57,6 +57,9 @@ public interface DocumentService {
 
     List<DocumentEntity> getAllDocuments();
 
+     DocumentEntity getDocument(Long id);
+
+
 
 
 

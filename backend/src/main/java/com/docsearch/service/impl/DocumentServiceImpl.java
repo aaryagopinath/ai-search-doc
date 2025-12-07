@@ -71,6 +71,7 @@ public class DocumentServiceImpl implements DocumentService {
                 .filename(file.getOriginalFilename())
                 .contentType(file.getContentType())
                 .contentText(text)
+                .fileData(file.getBytes())
                 .description(description)
                 .uploadedAt(Instant.now())
                 .build();
@@ -228,5 +229,10 @@ public class DocumentServiceImpl implements DocumentService {
         }
         return false;
     }
+
+    public DocumentEntity getDocument(Long id) {
+        return repo.findById(id).orElse(null);
+    }
+
 
 }

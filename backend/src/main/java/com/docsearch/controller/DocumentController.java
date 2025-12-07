@@ -116,4 +116,19 @@ public class DocumentController {
         }
     }
 
+    @GetMapping("/documents/{id}/file")
+    public ResponseEntity<byte[]> getFile(@PathVariable Long id) {
+        DocumentEntity doc = service.getDocument(id);
+
+        if (doc == null || doc.getFileData() == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok()
+                .header("Content-Disposition", "inline; filename=\"" + doc.getFilename() + "\"")
+                .header("Content-Type", doc.getContentType())
+                .body(doc.getFileData());
+    }
+
+
 }
